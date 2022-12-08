@@ -1,24 +1,104 @@
 <html>
   <head>
-    <script src="https://unpkg.com/vue"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.13/dist/vue.js"></script>
   </head>
   
   <body>
     <div id="app">
-      {{ message }}
-      <!-- Do all your HTML work in this #app div. -->
+      <h1>{{ header }}</h1>
+      
+      <div class="add-task-form">
+        <input v-model="newTask" @keyup.enter="addTask" type="text" placeholder="Add task"/>
+        <button class="btn btn-primary" @click="addTask">Add Task</button>
+      </div>
+      <ul v-if="tasks.length" class="task-list">  
+        <input v-model="searchQuery" type="text" placeholder="Search Tasks"/>
+        <li v-for="(task, index) of searchResults" :key="index">
+        <span class="title" v-bind="index" contenteditable="true" v-on:keydown.enter="updateTask($event, task)" @:blur="updateTask($event, task)">{{ task }}</span>
+        <button class="remove" @click="deleteTask(index)">x</button></li>
+      </ul>
+      <button v-bind="index" @click="updateTask($event, task)">Save</button>
+      <p v-else>No todos left!</p>
+      <span v-if="searchQuery">Total filtered results are : {{ totalSearchResults }}</span>
+      <span v-else>Total tasks are: {{ totalTasks }}</span>
     </div>
 
     <script>
+      
       var app = new Vue({
         el: "#app",
-        
-        // Do all your Vue work in this JS object.
-        
         data: {
-          message: "Hello Vue!"
+          header: 'Todo List',
+          newTask: '',
+          tasks: [
+            'Get groceries',
+            'Do the dishes',
+            'Clean the kitchen',
+          ],
+          searchQuery: null,
         },
-      });
+        computed: {
+          totalTasks: function() {
+            const total = this.tasks.length
+            return total;
+          },
+          searchResults: function() {
+            if (this.searchQuery) {
+              return this.tasks.filter(item => {
+                return this.searchQuery
+                  .toLowerCase()
+                  .split(" ")
+                  .every(v => item.toLowerCase().includes(v))
+              })
+            } return this.tasks;
+          },
+          totalSearchResults: function() {
+            const totalResults = this.searchResults.length
+            return totalResults;
+          }
+        },
+        watch: {
+          newTask(newInput) {
+            if (newInput == ('clear')) {
+              this.tasks = [];
+            }
+          }
+        },
+        methods: {
+          addTask: function() {
+            if(this.newTask === '') {return};
+            this.tasks.push(this.newTask);
+            this.newTask = '';
+          },
+          deleteTask: function(index) {
+            this.tasks.splice(index, 1);
+          },
+          updateTask: function(e, task) {
+            e.preventDefault();
+            task = e.target.innerText;
+            e.target.blur();
+          },
+        },
+        }
+      );
     </script>
+
+    <style lang="scss">
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: linear-gradient(90deg, rgba(0,61,89,1) 0%, rgba(21,63,118,1) 0%, rgba(114,160,193,1) 48%);
+      }
+
+      .task-form {
+        text-decoration: none;
+      }
+    </style>
   </body>
 </html>
